@@ -1,6 +1,8 @@
 import urllib.request
 import gzip
 import json
+# import uuid
+# import os
 
 # These default headers are not used.
 headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -10,15 +12,14 @@ headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;
                          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12F70 Safari/600.1.4'}
 
 
-baseHost = ["https://practicelogin.questrade.com", "https://login.questrade.com"]
+base_host = ["https://practicelogin.questrade.com", "https://login.questrade.com"]
 
 API_ver = "v1/"
-
-# https://practicelogin.questrade.com/Signin.aspx?ReturnUrl=%2fAPIAccess%2fUserApps.aspx
 
 
 def grab(url):
     req = urllib.request.Request(url, headers=headers)
+    # print(headers)
     try:
         response = urllib.request.urlopen(req)
         if response.info().get('Content-Encoding') == 'gzip':
@@ -34,11 +35,10 @@ def grab(url):
 
 
 def get_tokens():
-
     auth_file = 'auth.json'
     with open(auth_file) as inf:
+        global parsed
         parsed = json.load(inf)
-
     print("Loaded " + auth_file)
 
     try:
@@ -46,15 +46,15 @@ def get_tokens():
         headers = {"Authorization": parsed['token_type'] + " " + parsed['access_token']}
         global API_URL
         API_URL = parsed['api_server'] + API_ver
-        print(grab(API_URL + "time"))
+        printJSON(grab(API_URL + "time"))
     except:
         print("Expired access token, creating new one...")
         refresh_url = "/oauth2/token?grant_type=refresh_token&refresh_token="
-        data_reply = grab(baseHost[0] + refresh_url + parsed['refresh_token'])
+        data_reply = grab(base_host[0] + refresh_url + parsed['refresh_token'])
         if not data_reply:
             print("Expired refresh key.")
-            print("Go to: " + baseHost[0] + "/Signin.aspx?ReturnUrl=%2fAPIAccess%2fUserApps.aspx")
-            data_reply = grab(baseHost[0] + refresh_url + input("Please enter your new refresh key: "))
+            print("Go to: " + base_host[0] + "/Signin.aspx?ReturnUrl=%2fAPIAccess%2fUserApps.aspx")
+            data_reply = grab(base_host[0] + refresh_url + input("Please enter your new refresh key: "))
 
         if data_reply:
             with open(auth_file, 'w') as outf:
@@ -64,9 +64,21 @@ def get_tokens():
         else:
             raise ValueError("Failure to get tokens.")
 
+
 def printJSON(dump):
     print(json.dumps(dump, indent=4, sort_keys=True))
 
 get_tokens()
 
-print(grab(API_URL + "time"))
+# For logging
+# print(uuid.uuid4)
+# print(os.uname())
+
+accounts = grab(API_URL + "accounts")
+
+account_number = accounts['accounts'][0]['number']
+
+# print(account_number)
+
+# printJSON(grab(API_URL + "accounts/" + account_number + "/balances"))
+printJSON(grab(API_URL + "markets/quotes/38738"))
