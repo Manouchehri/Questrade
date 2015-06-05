@@ -1,0 +1,5 @@
+*.swp
+*.pyc
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+auth.json
