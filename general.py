@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import urllib.request
 import gzip
 import json
@@ -50,8 +52,9 @@ def get_tokens():
     except:
         print("Expired access token, creating new one...")
         refresh_url = "/oauth2/token?grant_type=refresh_token&refresh_token="
-        data_reply = grab(base_host[0] + refresh_url + parsed['refresh_token'])
-        if not data_reply:
+        try:
+            data_reply = grab(base_host[0] + refresh_url + parsed['refresh_token'])
+        except:
             print("Expired refresh key.")
             print("Go to: " + base_host[0] + "/Signin.aspx?ReturnUrl=%2fAPIAccess%2fUserApps.aspx")
             data_reply = grab(base_host[0] + refresh_url + input("Please enter your new refresh key: "))
